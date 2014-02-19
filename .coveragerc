@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = savanna
+omit = savanna/tests/*,savanna/openstack/*
+
+[report]
+ignore-errors = True
