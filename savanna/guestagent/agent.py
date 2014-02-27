@@ -27,6 +27,7 @@ import tempfile
 
 from oslo.config import cfg
 from oslo import messaging
+from oslo.messaging import serializer
 
 from savanna import exceptions as ex
 from savanna import guestagent
@@ -58,19 +59,17 @@ LOG = log.getLogger(__name__)
 _resp_attrs = [
     '_content',
     'status_code',
-    'headers',
+    # 'headers',
     'url',
     # 'history',
     'encoding',
     'reason',
-    'cookies',
+    # 'cookies',
     # 'elapsed',
     # 'request',
 ]
 
 
-# TODO(dmitryme): serialize everything, not just HTTP negotiation
-# we can read/write binary data, execute_command can return binary data, etc.
 def _serialize_http_response(f):
     def handle(*args, **kwargs):
         # TODO(dmitryme): find a way to avoid dummy exception wrapping
@@ -87,12 +86,7 @@ def _serialize_http_response(f):
             for attr in _resp_attrs
         )
 
-        # We pickle returned data because of the following:
-        #  * oslo.messaging AMQP driver sends messages json-encoded
-        #  * json encoding by default expects all input strings to be utf-8
-        #  * we can have non-utf8 symbols in HTTP response
-        # Pickle protocol 0 reliably produces ascii strings
-        return pickle.dumps(dct, protocol=0)
+        return dct
 
     return handle
 
@@ -175,6 +169,21 @@ class AgentEndpoint(object):
         return requests.request(http_method, url, **kwargs)
 
 
+# We pickle returned data for the following reasons:
+#  * oslo.messaging AMQP driver sends messages json-encoded
+#  * json encoding by default expects all input strings to be utf-8
+#  * we can have non-utf8 symbols in arguments / returned values
+# Pickle protocol 0 always produces valid ascii strings
+class _PickleSerializer(serializer.NoOpSerializer):
+    def serialize_entity(self, ctxt, entity):
+        entity = pickle.dumps(entity, protocol=0)
+        return entity.decode('ascii')
+
+    def deserialize_entity(self, ctxt, entity):
+        entity = entity.encode('ascii')
+        return pickle.loads(entity)
+
+
 def main():
     CONF(sys.argv[1:], project='savanna-guestagent',
          version=guestagent.__version__)
@@ -190,7 +199,8 @@ def main():
                               server=CONF.server_id)
     server = messaging.get_rpc_server(transport, target,
                                       endpoints=[AgentEndpoint()],
-                                      executor='eventlet')
+                                      executor='eventlet',
+                                      serializer=_PickleSerializer())
 
     server.start()
     server.wait()
