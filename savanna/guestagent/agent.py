@@ -46,6 +46,20 @@ CONF.register_opts(agent_ops)
 LOG = log.getLogger(__name__)
 
 
+def _process_exceptions(f):
+    def handle(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except requests.ConnectionError as e:
+            LOG.exception(e)
+            raise ex.RemoteConnectionError(e)
+        except Exception as e:
+            LOG.exception(e)
+            raise ex.RemoteError(e)
+
+    return handle
+
+
 # TODO(dmitryme): once requests in requirements are >= 2.1,
 # replace that self-made serialization with pickling. Specifically,
 # we wait for the following commit:
@@ -73,10 +87,7 @@ _resp_attrs = [
 def _serialize_http_response(f):
     def handle(*args, **kwargs):
         # TODO(dmitryme): find a way to avoid dummy exception wrapping
-        try:
-            resp = f(*args, **kwargs)
-        except Exception as e:
-            raise RuntimeError(type(e).__name__ + ': ' + str(e))
+        resp = f(*args, **kwargs)
 
         if not resp._content_consumed:
             resp.content
@@ -92,6 +103,7 @@ def _serialize_http_response(f):
 
 
 class AgentEndpoint(object):
+    @_process_exceptions
     def execute_command(self, ctx, cmd, run_as_root, get_stderr,
                         raise_when_error):
         return self._execute_command(cmd, run_as_root, get_stderr,
@@ -111,8 +123,8 @@ class AgentEndpoint(object):
         ret_code = p.returncode
 
         if ret_code and raise_when_error:
-            raise ex.RemoteCommandException(cmd=cmd, ret_code=ret_code,
-                                            stdout=stdout, stderr=stderr)
+            raise ex.RemoteCommandError(cmd=cmd, ret_code=ret_code,
+                                        stdout=stdout, stderr=stderr)
 
         if get_stderr:
             return ret_code, stdout, stderr
@@ -129,6 +141,7 @@ class AgentEndpoint(object):
             # if file does not exist, we don't care
             pass
 
+    @_process_exceptions
     def write_files_to(self, ctxt, files, run_as_root):
         for filename, data in files.iteritems():
             if run_as_root:
@@ -144,6 +157,7 @@ class AgentEndpoint(object):
                 with open(filename, 'w') as fl:
                     fl.write(data)
 
+    @_process_exceptions
     def read_file_from(self, ctxt, remote_file, run_as_root):
         if run_as_root:
             fd, tmp_name = tempfile.mkstemp()
@@ -159,6 +173,7 @@ class AgentEndpoint(object):
             with open(remote_file) as fl:
                 return fl.read()
 
+    @_process_exceptions
     @_serialize_http_response
     def request(self, ctxt, http_method, url, kwargs):
         if ('auth' in kwargs and isinstance(kwargs['auth'], list) and

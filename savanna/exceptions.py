@@ -31,12 +31,32 @@ class SavannaException(Exception):
             '%s: %s' % (self.code, self.message))
 
 
-class RemoteCommandException(SavannaException):
+class RemoteError(Exception):
+    """A base class for all the remote exceptions.
+
+    There are two types of the remote exceptions:
+     * Wrapping exceptions. These should be constructed with the
+       orignal exception passed as 'exc' parameter.
+     * Other exceptions. These should be constructed with the
+       error message passed as 'msg' parameter.
+    """
+
+    def __init__(self, exc=None, msg=''):
+        if exc:
+            exc_type = type(exc)
+            msg = '%s.%s: %s' % (exc_type.__module__,
+                                 exc_type.__name__, str(exc))
+
+        msg = msg.decode('ascii', 'ignore')
+
+        super(RemoteError, self).__init__(msg)
+
+
+class RemoteCommandError(RemoteError):
     message = "Error during command execution: \"%s\""
 
     def __init__(self, cmd, ret_code=None, stdout=None,
                  stderr=None):
-        self.code = "REMOTE_COMMAND_FAILED"
 
         stdout = stdout.decode('ascii', 'ignore')
         stderr = stderr.decode('ascii', 'ignore')
@@ -57,4 +77,8 @@ class RemoteCommandException(SavannaException):
         if stdout:
             self.message += '\nSTDOUT:\n' + stdout
 
-        self.message = self.message.decode('ascii', 'ignore')
+        super(RemoteCommandError, self).__init__(msg=self.message)
+
+
+class RemoteConnectionError(RemoteError):
+    """Signals that the requested connection failed on the remote side."""
