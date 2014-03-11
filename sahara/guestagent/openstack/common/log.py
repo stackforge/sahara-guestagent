@@ -41,10 +41,10 @@ from oslo.config import cfg
 import six
 from six import moves
 
-from savanna.guestagent.openstack.common.gettextutils import _
-from savanna.guestagent.openstack.common import importutils
-from savanna.guestagent.openstack.common import jsonutils
-from savanna.guestagent.openstack.common import local
+from sahara.guestagent.openstack.common.gettextutils import _
+from sahara.guestagent.openstack.common import importutils
+from sahara.guestagent.openstack.common import jsonutils
+from sahara.guestagent.openstack.common import local
 
 
 _DEFAULT_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -537,7 +537,7 @@ def _setup_logging_from_conf(project, version):
 
     if CONF.publish_errors:
         handler = importutils.import_object(
-            "savanna.guestagent.openstack.common.log_handler.PublishErrorsHandler",
+            "sahara.guestagent.openstack.common.log_handler.PublishErrorsHandler",
             logging.ERROR)
         log_root.addHandler(handler)
 

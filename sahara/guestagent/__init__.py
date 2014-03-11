@@ -16,4 +16,4 @@ import pbr.version
 
 
 __version__ = pbr.version.VersionInfo(
-    'savanna-guestagent').version_string()
+    'sahara-guestagent').version_string()

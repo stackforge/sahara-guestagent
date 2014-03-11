@@ -2,6 +2,6 @@
 Usage
 ========
 
-To use savanna-guestagent in a project::
+To use sahara-guestagent in a project::
 
-	import savanna
+	import sahara
