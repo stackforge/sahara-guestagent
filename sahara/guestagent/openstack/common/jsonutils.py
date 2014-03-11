@@ -48,9 +48,9 @@ except ImportError:
 
 import six
 
-from savanna.guestagent.openstack.common import gettextutils
-from savanna.guestagent.openstack.common import importutils
-from savanna.guestagent.openstack.common import timeutils
+from sahara.guestagent.openstack.common import gettextutils
+from sahara.guestagent.openstack.common import importutils
+from sahara.guestagent.openstack.common import timeutils
 
 netaddr = importutils.try_import("netaddr")
 

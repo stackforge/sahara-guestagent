@@ -4,9 +4,9 @@ Installation
 
 At the command line::
 
-    $ pip install savanna-guestagent
+    $ pip install sahara-guestagent
 
 Or, if you have virtualenvwrapper installed::
 
-    $ mkvirtualenv savanna-guestagent
-    $ pip install savanna-guestagent
+    $ mkvirtualenv sahara-guestagent
+    $ pip install sahara-guestagent
