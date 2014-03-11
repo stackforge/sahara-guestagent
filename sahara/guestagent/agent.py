@@ -28,9 +28,9 @@ import tempfile
 from oslo.config import cfg
 from oslo import messaging
 
-from savanna import exceptions as ex
-from savanna import guestagent
-from savanna.guestagent.openstack.common import log
+from sahara import exceptions as ex
+from sahara import guestagent
+from sahara.guestagent.openstack.common import log
 
 
 agent_ops = [
@@ -176,17 +176,17 @@ class AgentEndpoint(object):
 
 
 def main():
-    CONF(sys.argv[1:], project='savanna-guestagent',
+    CONF(sys.argv[1:], project='sahara-guestagent',
          version=guestagent.__version__)
 
     log.setup('guestagent')
 
     transport = messaging.get_transport(cfg.CONF)
 
-    LOG.info('Listening as server_id "%s" on topic "savanna-topic"' %
+    LOG.info('Listening as server_id "%s" on topic "sahara-agent-topic"' %
              CONF.server_id)
 
-    target = messaging.Target(topic='savanna-topic', version='1.0',
+    target = messaging.Target(topic='sahara-agent-topic', version='1.0',
                               server=CONF.server_id)
     server = messaging.get_rpc_server(transport, target,
                                       endpoints=[AgentEndpoint()],

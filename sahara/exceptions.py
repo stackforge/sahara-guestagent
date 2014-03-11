@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-class SavannaException(Exception):
+class SaharaException(Exception):
     """Base Exception for the project
 
     To correctly use this class, inherit from it and define
@@ -27,11 +27,11 @@ class SavannaException(Exception):
         return self.message
 
     def __init__(self):
-        super(SavannaException, self).__init__(
+        super(SaharaException, self).__init__(
             '%s: %s' % (self.code, self.message))
 
 
-class RemoteCommandException(SavannaException):
+class RemoteCommandException(SaharaException):
     message = "Error during command execution: \"%s\""
 
     def __init__(self, cmd, ret_code=None, stdout=None,

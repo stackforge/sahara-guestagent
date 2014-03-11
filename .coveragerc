@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = savanna
-omit = savanna/tests/*,savanna/openstack/*
+source = sahara
+omit = sahara/tests/*,sahara/openstack/*
 
 [report]
 ignore-errors = True
