@@ -1,7 +1,0 @@
-[run]
-branch = True
-source = sahara
-omit = sahara/tests/*,sahara/openstack/*
-
-[report]
-ignore-errors = True
